@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLICK OR DIE</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Left 70%: Game Area -->
+    <div id="game-area" class="state-start">
+      <div id="flash-overlay"></div>
+      
+      <!-- Center target -->
+      <div id="target-wrapper">
+        <div id="target">
+          <div class="target-ring outer"></div>
+          <div class="target-ring inner"></div>
+          <div class="crosshair-h"></div>
+          <div class="crosshair-v"></div>
+        </div>
+        <div id="target-status-text">SYSTEM STANDBY</div>
+      </div>
+      
+      <!-- Result time display -->
+      <div id="result-time" class="hidden"></div>
+      <div id="result-rank" class="hidden"></div>
+    </div>
+
+    <!-- Right 30%: Sidebar -->
+    <div id="sidebar">
+      <div class="sidebar-top">
+        <h1 id="level-display">LEVEL 1 &mdash; RECRUIT</h1>
+        <h2 id="threat-display">THREAT: LOW</h2>
+      </div>
+
+      <div class="sidebar-middle">
+        <div class="stat-box">
+          <span class="stat-label">BEST</span>
+          <span class="stat-value" id="best-score">---</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">LAST</span>
+          <span class="stat-value" id="last-score">---</span>
+        </div>
+        <div class="stat-box highlight">
+          <span class="stat-label">STREAK</span>
+          <span class="stat-value" id="streak-counter">x0</span>
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div id="status-panel">READY TO INITIATE</div>
+        <button id="main-btn">START</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

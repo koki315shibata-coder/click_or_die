@@ -161,7 +161,7 @@ body {
 }
 .state-wait .target-ring.outer {
   border-color: var(--accent-red);
-  animation: pulseRed 0.8s infinite alternate;
+  animation: pulseRed var(--pulse-dur, 0.8s) infinite alternate;
 }
 .state-wait .target-ring.inner { border-color: var(--accent-red); }
 .state-wait .crosshair-h, .state-wait .crosshair-v { background-color: var(--accent-red); }
@@ -262,6 +262,52 @@ body {
   font-size: 1.2rem;
   color: var(--accent-red);
   letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+/* DIFFICULTY SELECTOR */
+#difficulty-selector-container {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.selector-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+}
+
+.difficulty-options {
+  display: flex;
+  gap: 8px;
+}
+
+.diff-btn {
+  flex: 1;
+  text-align: center;
+  padding: 8px 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.diff-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-main);
+}
+
+.diff-btn.active {
+  background: rgba(53, 240, 138, 0.15);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  box-shadow: 0 0 10px rgba(53, 240, 138, 0.3);
 }
 
 .sidebar-middle {
@@ -330,6 +376,7 @@ body {
   transition: all 0.2s;
   box-shadow: 0 0 15px rgba(0,240,255,0.2), inset 0 0 15px rgba(0,240,255,0.1);
   text-transform: uppercase;
+  min-height: 60px; /* Touch target size */
 }
 
 #main-btn:hover {
@@ -340,4 +387,65 @@ body {
 
 #main-btn:active {
   transform: scale(0.98);
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 900px) {
+  #game-container {
+    flex-direction: column;
+  }
+  
+  #game-area {
+    flex: 5;
+    border-right: none;
+    border-bottom: 2px solid rgba(0, 240, 255, 0.2);
+  }
+  
+  #sidebar {
+    flex: 4;
+    padding: 20px;
+    border-left: none;
+    overflow-y: auto;
+  }
+  
+  .sidebar-top {
+    margin-bottom: 20px;
+  }
+  
+  #level-display {
+    font-size: 1.5rem;
+  }
+  
+  .sidebar-middle {
+    gap: 10px;
+  }
+  
+  .stat-box {
+    padding: 10px 15px;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+  }
+  
+  #target {
+    width: 200px;
+    height: 200px;
+  }
+  
+  #result-time {
+    font-size: 4rem;
+  }
+  
+  #result-rank {
+    font-size: 2rem;
+  }
+  
+  #target-wrapper {
+    gap: 15px;
+  }
+  
+  .diff-btn {
+    padding: 12px 0; /* Larger touch targets */
+  }
 }

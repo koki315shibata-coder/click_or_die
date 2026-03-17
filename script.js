@@ -1,11 +1,36 @@
 // Game variables
-const levels = [
-  { level: 1, name: 'RECRUIT', window: 1200, threat: 'LOW' },
-  { level: 2, name: 'SOLDIER', window: 1000, threat: 'MEDIUM' },
-  { level: 3, name: 'VETERAN', window: 800, threat: 'HIGH' },
-  { level: 4, name: 'ELITE', window: 650, threat: 'CRITICAL' },
-  { level: 5, name: 'OMEGA', window: 500, threat: 'LETHAL' }
-];
+function getLevelParams(idx) {
+  const baseLevels = [
+    { name: 'RECRUIT', window: 1200, threat: 'LOW' },
+    { name: 'SOLDIER', window: 1000, threat: 'MEDIUM' },
+    { name: 'VETERAN', window: 800, threat: 'HIGH' },
+    { name: 'ELITE', window: 650, threat: 'EXTREME' },
+    { name: 'OMEGA', window: 500, threat: 'CRITICAL' }
+  ];
+  
+  let actualLevel = idx + 1;
+  let params = { level: actualLevel };
+  
+  if (idx < 5) {
+    params.name = baseLevels[idx].name;
+    params.window = baseLevels[idx].window;
+    params.threat = baseLevels[idx].threat;
+    params.pulseDur = 0.8 - (idx * 0.1); 
+  } else {
+    let diff = idx - 4;
+    let pluses = '+'.repeat(Math.min(diff, 3)); 
+    params.name = 'OMEGA' + pluses;
+    params.window = Math.max(180, 500 - (diff * 25)); // smoothly reduce window
+    
+    if (actualLevel < 10) params.threat = 'LETHAL';
+    else if (actualLevel < 15) params.threat = 'TERMINAL';
+    else params.threat = 'GOD-TIER';
+    
+    params.pulseDur = Math.max(0.1, 0.4 - (diff * 0.03));
+  }
+  
+  return params;
+}
 
 let state = 'START'; // START, WAIT, FIRE, RESULT
 let currentLevelIdx = 0;
@@ -30,6 +55,8 @@ const streakCounterEl = document.getElementById('streak-counter');
 const resultTimeEl = document.getElementById('result-time');
 const resultRankEl = document.getElementById('result-rank');
 const flashOverlay = document.getElementById('flash-overlay');
+const difficultyContainer = document.getElementById('difficulty-selector-container');
+const diffBtns = document.querySelectorAll('.diff-btn');
 
 // Wait Phase Sound Interval
 let beepInterval = null;
@@ -100,8 +127,19 @@ function startGame() {
   statusPanel.style.borderColor = 'var(--accent-red)';
   
   mainBtn.style.display = 'none';
+  
+  const lvlParams = getLevelParams(currentLevelIdx);
+  // hide difficulty selector when game is running
+  difficultyContainer.style.opacity = '0.3';
+  difficultyContainer.style.pointerEvents = 'none';
+  
+  // Set pulse duration CSS variable
+  document.documentElement.style.setProperty('--pulse-dur', `${lvlParams.pulseDur}s`);
 
-  const delay = Math.random() * 2000 + 1500; // 1.5s to 3.5s
+  // Delay logic scales with difficulty
+  const minDelay = Math.max(800, 1500 - (currentLevelIdx * 50)); 
+  const maxDelay = Math.min(6000, 3500 + (currentLevelIdx * 200));
+  const delay = Math.random() * (maxDelay - minDelay) + minDelay;
   
   // Play subtle lock-on beep periodically during wait phase
   beepInterval = setInterval(playLockOn, 500);
@@ -127,7 +165,7 @@ function firePhase() {
   
   startTime = performance.now();
   
-  const currentLevel = levels[Math.min(currentLevelIdx, levels.length - 1)];
+  const currentLevel = getLevelParams(currentLevelIdx);
   fireTimeout = setTimeout(() => {
     failGame('TOO SLOW');
   }, currentLevel.window);
@@ -149,9 +187,11 @@ function successGame() {
   streak++;
   
   // Level progression
-  if (streak % 1 === 0 && currentLevelIdx < levels.length - 1) {
+  if (streak % 1 === 0) {
     currentLevelIdx++;
   }
+
+  updateSelectorUI();
 
   updateBestScore(rt);
   lastScoreEl.innerText = rt + ' ms';
@@ -171,6 +211,10 @@ function failGame(reason) {
   clearTimeout(waitTimeout);
   clearTimeout(fireTimeout);
   if (beepInterval) clearInterval(beepInterval);
+  
+  // Show selector again
+  difficultyContainer.style.opacity = '1';
+  difficultyContainer.style.pointerEvents = 'auto';
   
   state = 'RESULT';
   gameArea.className = 'state-start'; // Reset visuals roughly
@@ -195,7 +239,11 @@ function failGame(reason) {
   resultRankEl.classList.remove('hidden');
   
   streak = 0;
-  currentLevelIdx = 0;
+  // If we fail on a high level, drop back to the level we manually started at (or 1)
+  const activeBtn = Array.from(diffBtns).find(b => b.classList.contains('active'));
+  currentLevelIdx = activeBtn ? parseInt(activeBtn.dataset.level) - 1 : 0;
+  
+  updateSelectorUI();
   updateSidebar();
   
   mainBtn.style.display = 'block';
@@ -233,7 +281,7 @@ function updateBestScore(rt) {
 }
 
 function updateSidebar() {
-  const lvlParams = levels[Math.min(currentLevelIdx, levels.length - 1)];
+  const lvlParams = getLevelParams(currentLevelIdx);
   levelDisplay.innerText = `LEVEL ${lvlParams.level} — ${lvlParams.name}`;
   threatDisplay.innerText = `THREAT: ${lvlParams.threat}`;
   
@@ -241,8 +289,31 @@ function updateSidebar() {
   streakCounterEl.innerText = 'x' + streak;
 }
 
+function updateSelectorUI() {
+  diffBtns.forEach(btn => btn.classList.remove('active'));
+  if (currentLevelIdx < 5) {
+    const activeBtn = Array.from(diffBtns).find(b => parseInt(b.dataset.level) === (currentLevelIdx + 1));
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+}
+
 // Event Listeners
+diffBtns.forEach(btn => {
+  const handler = (e) => {
+    e.stopPropagation();
+    if (state !== 'START' && state !== 'RESULT') return;
+    
+    currentLevelIdx = parseInt(e.target.dataset.level) - 1;
+    streak = 0; 
+    updateSelectorUI();
+    updateSidebar();
+  };
+  btn.addEventListener('mousedown', handler);
+  btn.addEventListener('touchstart', handler);
+});
+
 document.body.addEventListener('mousedown', (e) => {
+  if (e.target.closest('#difficulty-selector-container')) return;
   initAudio();
   
   // Important logic to make whole screen act as the trigger
